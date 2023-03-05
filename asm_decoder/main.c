@@ -1,4 +1,5 @@
-// TODO(vegasword): Decode the instruction.
+// TODO(vegasword): Decoding Multiple Instructions and Suffixes
+// Link: https://www.computerenhance.com/p/decoding-multiple-instructions-and
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,11 +54,66 @@ char* hex_to_bin(char* hexString) {
     return binString;
 }
 
+void parse_register(char bWField, char* bRegister, char* dest) {
+    char prefix = 0, suffix = 0;
+    
+    if (bWField == '0') {
+        const char* prefixes = "ACDBACDB";
+        prefix = prefixes[strtol(bRegister, NULL, 2)];
+        suffix = bRegister[0] == '0' ? 'L' : 'H';
+    }
+    else {
+        const char* prefixes = "ACDBSBSD";
+        prefix = prefixes[strtol(bRegister, NULL, 2)];
+        suffix = bRegister[0] == '0' ? 'X' : (bRegister[1] == '0' ? 'P' : 'I');
+    }
+    
+    dest[0] = prefix;
+    dest[1] = suffix;
+    dest[2] = '\0';
+}
+
+// We handle only the Register/memory to/from register MOV instruction
+// (MOD = 11) case for now
+// TODO(vegasword): Handle other memory modes
+void parse_bin_str(char* binString, char* path, char* bitsDirective) {
+    printf(";%s\n", path);
+    printf("bits %s\n", bitsDirective);
+    
+    char bOpCode[7];
+    strncpy(bOpCode, binString, 6);
+    char bDField = binString[6];
+    char bWField = binString[7];
+    
+    char bModField[3];
+    strncpy(bModField, &binString[8], 2);
+    char bRegField[4];
+    strncpy(bRegField, &binString[10], 3);
+    char bRmField[4];
+    strncpy(bRmField, &binString[13], 3);
+    
+    // TODO(vegasword): parse_operation
+    if (strcmp(bOpCode, "100010") == 0) {
+        printf("MOV ");
+    }
+    
+    char reg[3], rm[3];
+    parse_register(bWField, bRegField, reg);
+    parse_register(bWField, bRmField, rm);
+    
+    if (bDField == '0') {
+        printf("%s, %s\n", rm, reg);
+    }
+    else {
+        printf("%s, %s\n", reg, rm);
+    }
+}
+
 int main(int argc, char** argv)
 {
-    if (argc != 2)
+    if (argc < 2)
     {
-        printf("Please specify the path to the encoded asm file!\n");
+        printf("Usage: decode_to_asm [PATH] [BITS DIRECTIVE (default=16)]\n");
         return 1;
     }
     
@@ -96,7 +152,9 @@ int main(int argc, char** argv)
         printf("Failed to create the binary string!\n");
         return 1;
     }
-    printf("Binary output: %s\n", binString);
+    
+    size_t opCount = fileSize / 2;
+    parse_bin_str(binString, argv[1], (argv[2] == NULL ? "16" : argv[2]));
     
     free(binString);
     free(hexString);
