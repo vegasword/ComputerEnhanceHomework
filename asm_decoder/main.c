@@ -58,14 +58,14 @@ void parse_register(char bWField, char* bRegister, char* dest) {
     char prefix = 0, suffix = 0;
     
     if (bWField == '0') {
-        const char* prefixes = "ACDBACDB";
+        const char* prefixes = "acdbacdb";
         prefix = prefixes[strtol(bRegister, NULL, 2)];
-        suffix = bRegister[0] == '0' ? 'L' : 'H';
+        suffix = bRegister[0] == '0' ? 'l' : 'h';
     }
     else {
-        const char* prefixes = "ACDBSBSD";
+        const char* prefixes = "acdbsbsd";
         prefix = prefixes[strtol(bRegister, NULL, 2)];
-        suffix = bRegister[0] == '0' ? 'X' : (bRegister[1] == '0' ? 'P' : 'I');
+        suffix = bRegister[0] == '0' ? 'x' : (bRegister[1] == '0' ? 'p' : 'i');
     }
     
     dest[0] = prefix;
@@ -76,36 +76,38 @@ void parse_register(char bWField, char* bRegister, char* dest) {
 // We handle only the Register/memory to/from register MOV instruction
 // (MOD = 11) case for now
 // TODO(vegasword): Handle other memory modes
-void parse_bin_str(char* binString, char* path, char* bitsDirective) {
-    printf(";%s\n", path);
-    printf("bits %s\n", bitsDirective);
-    
-    char bOpCode[7];
-    strncpy(bOpCode, binString, 6);
-    char bDField = binString[6];
-    char bWField = binString[7];
-    
-    char bModField[3];
-    strncpy(bModField, &binString[8], 2);
-    char bRegField[4];
-    strncpy(bRegField, &binString[10], 3);
-    char bRmField[4];
-    strncpy(bRmField, &binString[13], 3);
-    
-    // TODO(vegasword): parse_operation
-    if (strcmp(bOpCode, "100010") == 0) {
-        printf("MOV ");
-    }
-    
-    char reg[3], rm[3];
-    parse_register(bWField, bRegField, reg);
-    parse_register(bWField, bRmField, rm);
-    
-    if (bDField == '0') {
-        printf("%s, %s\n", rm, reg);
-    }
-    else {
-        printf("%s, %s\n", reg, rm);
+void parse_bin_str(char* binString, size_t opCount) {
+    for (size_t i=0; i < opCount; i++)
+    {
+        char bOpCode[7];
+        strncpy(bOpCode, &binString[i], 6);
+        printf("%d: %s\n", i, bOpCode);
+        char bDField = binString[i + 6];
+        char bWField = binString[i + 7];
+        
+        char bModField[3];
+        strncpy(bModField, &binString[i + 8], 2);
+        char bRegField[4];
+        strncpy(bRegField, &binString[i + 10], 3);
+        char bRmField[4];
+        strncpy(bRmField, &binString[i + 13], 3);
+        
+        
+        // TODO(vegasword): parse_operation
+        if (strcmp(bOpCode, "100010") == 0) {
+            printf("mov ");
+        }
+        
+        char reg[3], rm[3];
+        parse_register(bWField, bRegField, reg);
+        parse_register(bWField, bRmField, rm);
+        
+        if (bDField == '0') {
+            printf("%s, %s\n", rm, reg);
+        }
+        else {
+            printf("%s, %s\n", reg, rm);
+        }
     }
 }
 
@@ -153,8 +155,10 @@ int main(int argc, char** argv)
         return 1;
     }
     
-    size_t opCount = fileSize / 2;
-    parse_bin_str(binString, argv[1], (argv[2] == NULL ? "16" : argv[2]));
+    
+    printf(";%s\n", argv[1]);
+    printf("bits %s\n", argv[2] == NULL ? "16" : argv[2]);
+    parse_bin_str(binString, (size_t)fileSize / 2);
     
     free(binString);
     free(hexString);
