@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 
+typedef unsigned uint;
 typedef unsigned char uchar;
 
 #include "utils.c"

@@ -44,9 +44,9 @@ char* hex_to_bin(char* hexString) {
     return binString;
 }
 
-int str_cmp(char* s1, char* s2) {
-    for (uint i = 0; s1[i+1] == '\0' || s2[i+1] == '\0'; i++) {
-        if (s1[i] != s2[i]) {
+int str_cmp(char* cur, const char* pattern) {
+    for (uint i = 0; i < strlen(pattern); i++) {
+        if (cur[i] != pattern[i]) {
             return 0;
         }
     }
