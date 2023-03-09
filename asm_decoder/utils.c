@@ -43,3 +43,12 @@ char* hex_to_bin(char* hexString) {
     
     return binString;
 }
+
+int str_cmp(char* s1, char* s2) {
+    for (uint i = 0; s1[i+1] == '\0' || s2[i+1] == '\0'; i++) {
+        if (s1[i] != s2[i]) {
+            return 0;
+        }
+    }
+    return 1;
+}
